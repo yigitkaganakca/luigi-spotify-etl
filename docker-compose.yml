@@ -1,0 +1,116 @@
+name: luigi-spotify-etl
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: luigi-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-luigi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-luigi}
+      POSTGRES_DB: ${POSTGRES_DB:-charts}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-luigi} -d $${POSTGRES_DB:-charts}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  pgadmin:
+    image: dpage/pgadmin4:8.12
+    container_name: luigi-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    container_name: luigi-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.3
+    container_name: luigi-kibana
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:5601/api/status || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+
+  luigid:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: luigi-spotify-etl:latest
+    container_name: luigi-scheduler
+    command: ["luigid", "--address", "0.0.0.0", "--port", "8082"]
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./pipeline:/app/pipeline
+      - ./data:/app/data
+      - ./luigi.cfg:/app/luigi.cfg
+    environment:
+      LUIGI_CONFIG_PATH: /app/luigi.cfg
+
+  luigi-worker:
+    image: luigi-spotify-etl:latest
+    container_name: luigi-worker
+    command: ["sleep", "infinity"]
+    volumes:
+      - ./pipeline:/app/pipeline
+      - ./data:/app/data
+      - ./luigi.cfg:/app/luigi.cfg
+    environment:
+      LUIGI_CONFIG_PATH: /app/luigi.cfg
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-luigi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-luigi}
+      POSTGRES_DB: ${POSTGRES_DB:-charts}
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: "9200"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      luigid:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  es_data:
+
+networks:
+  default:
+    name: luigi
+    external: true

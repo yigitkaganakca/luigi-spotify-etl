@@ -1,0 +1,34 @@
+# One artist per line. Lines starting with `#` and blanks are ignored.
+# Every artist is its own Luigi FetchArtistTracks task and runs in parallel.
+# 20 artists × 50 tracks (iTunes default cap) = up to ~1,000 rows.
+# Cross-decade coverage so the `decade` enrichment field is meaningful.
+
+# 1960s-70s
+The Beatles
+Pink Floyd
+Led Zeppelin
+Queen
+
+# 1980s
+Michael Jackson
+Madonna
+Prince
+U2
+
+# 1990s
+Nirvana
+Radiohead
+Oasis
+
+# 2000s
+Eminem
+Coldplay
+Beyoncé
+
+# 2010s-2020s
+Adele
+Taylor Swift
+The Weeknd
+Billie Eilish
+Dua Lipa
+Olivia Rodrigo
