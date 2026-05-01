@@ -10,7 +10,7 @@ with the assignment's transparency requirement.
 - Drafting the project structure and the `docker-compose.yml` skeleton.
 - Generating the initial Luigi `Task` boilerplate (class hierarchy, `requires`
   / `output` / `run` patterns) which was then reviewed and adapted.
-- Writing the seed CSV column layout
+- Writing the seed artist list and the iTunes JSON -> CSV column mapping in `MergeArtistTracks`.
 - Producing the first draft of this README.
 
 ## What AI was *not* used for
