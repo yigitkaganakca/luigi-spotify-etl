@@ -19,7 +19,7 @@ up: ## Boot the full stack (Postgres, pgAdmin, ES, Kibana, Luigi scheduler + wor
 	docker compose up -d
 	@echo ""
 	@echo "  Luigi UI:    http://localhost:8082"
-	@echo "  pgAdmin:     http://localhost:5050   (admin@example.com / admin)"
+	@echo "  pgAdmin:     http://localhost:5050   (no login; register Postgres host=postgres user=luigi pw=luigi db=charts)"
 	@echo "  Elastic:     http://localhost:9200"
 	@echo "  Kibana:      http://localhost:5601"
 

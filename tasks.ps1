@@ -56,7 +56,7 @@ switch ($Target.ToLower()) {
         docker compose up -d
         Write-Host ""
         Write-Host "  Luigi UI:    http://localhost:8082"
-        Write-Host "  pgAdmin:     http://localhost:5050   (admin@example.com / admin)"
+        Write-Host "  pgAdmin:     http://localhost:5050   (no login; register Postgres host=postgres user=luigi pw=luigi db=charts)"
         Write-Host "  Elastic:     http://localhost:9200"
         Write-Host "  Kibana:      http://localhost:5601"
     }

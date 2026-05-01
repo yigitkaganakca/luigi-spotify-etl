@@ -63,7 +63,7 @@ make up
 | Service | URL | Credentials |
 |---|---|---|
 | Luigi scheduler UI | http://localhost:8082 | — |
-| pgAdmin | http://localhost:5050 | `admin@example.com` / `admin` |
+| pgAdmin | http://localhost:5050 | no login (Desktop Mode is on) |
 | Elasticsearch | http://localhost:9200 | — |
 | Kibana | http://localhost:5601 | — |
 
@@ -157,7 +157,22 @@ make es-count
 
 Both should report the same row count (somewhere between ~700 and ~1000).
 
-Open **pgAdmin** (<http://localhost:5050>) -> connect to host `postgres`, user `luigi`, password `luigi`, db `charts` -> run:
+Open **pgAdmin** at <http://localhost:5050>. The compose file disables pgAdmin's login screen (`PGADMIN_CONFIG_SERVER_MODE: "False"`), so you land directly on the dashboard - no credentials needed.
+
+The Postgres connection is **not** pre-registered. One-time setup:
+
+1. Right-click **Servers** in the left sidebar -> **Register** -> **Server...**
+2. **General** tab: Name = `Luigi Postgres` (anything you like)
+3. **Connection** tab:
+   - Host: `postgres` (the docker service name - **not** `localhost`, because pgAdmin runs inside the same docker network as Postgres)
+   - Port: `5432`
+   - Maintenance database: `charts`
+   - Username: `luigi`
+   - Password: `luigi`
+   - Tick **Save password**
+4. Click **Save**
+
+Then expand `Luigi Postgres -> Databases -> charts -> Schemas -> public -> Tables`, right-click `top_tracks` -> **Query Tool**, and run:
 
 ```sql
 SELECT artist, COUNT(*) AS tracks, ROUND(AVG(duration_min)::numeric, 2) AS avg_min
